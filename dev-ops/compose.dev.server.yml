@@ -1,0 +1,31 @@
+version: "1.1"
+
+services:
+  server:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: teachease-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../server:/server
+      - /server/node_modules
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - ../server/.env
+  postgres:
+    image: postgres:16
+    container_name: teachease-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: yourusername
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: yourdatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

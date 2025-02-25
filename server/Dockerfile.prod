@@ -1,0 +1,30 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /server
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npx prisma generate
+
+RUN npm run build
+
+FROM node:20-alpine
+
+WORKDIR /server
+
+COPY --from=builder /server/prisma ./prisma
+COPY --from=builder /server/dist ./dist
+COPY --from=builder /server/src ./src
+COPY --from=builder /server/node_modules ./node_modules
+COPY --from=builder /server/package*.json ./
+COPY ./.env ./
+
+RUN npx prisma generate
+
+EXPOSE 8080
+
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/index.js"]

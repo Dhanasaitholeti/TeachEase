@@ -1,0 +1,42 @@
+services:
+  app:
+    image: dhanasai/teachease-app:latest
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../app/.env
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  server:
+    image: dhanasai/teachease-server:latest
+    ports:
+      - "8080:8080"
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ../server/.env
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: yourusername
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: yourdatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  postgres_data:

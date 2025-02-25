@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "EXAMTYPE" AS ENUM ('WEEKLY', 'UA', 'SA');
+
+-- AlterTable
+ALTER TABLE "Test" ADD COLUMN     "examType" "EXAMTYPE" NOT NULL DEFAULT 'WEEKLY';

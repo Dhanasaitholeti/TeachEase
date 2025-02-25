@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  password   String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  Reminder Reminder[] @relation(name: "adminReminders")
+}
+
+enum GENDER {
+  MALE
+  FEMALE
+  OTHERS
+}
+
+model Teacher {
+  id                    String       @id @default(cuid())
+  email                 String       @unique
+  mobile                String
+  qualification         String[]
+  name                  String
+  gender                GENDER
+  password              String
+  isAdmin               Boolean      @default(false)
+  responsibleForClassId String?
+  reminders             Reminder[]   @relation(name: "teacherReminders")
+  standards             Standard[]   @relation(name: "teachersForClass")
+  subjects              Subject[]
+  Test                  Test[]
+  Attendence            Attendance[]
+  timetable             TimeTable[]
+  created_at            DateTime     @default(now())
+  updated_at            DateTime     @default(now()) @updatedAt
+  Standard              Standard[]
+
+  Feedback Feedback[]
+}
+
+model Subject {
+  id   String @id @default(cuid())
+  name String
+
+  classId String
+  class   Standard @relation(fields: [classId], references: [id])
+
+  teachers   Teacher[]
+  Test       Test[]
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+
+  TimeTable TimeTable[]
+}
+
+model Standard {
+  id             String       @id @default(cuid())
+  name           String
+  medium         String
+  students       Student[]
+  section        String?
+  classTeacher   Teacher?     @relation(fields: [classTeacherId], references: [id])
+  classTeacherId String?
+  teachers       Teacher[]    @relation(name: "teachersForClass")
+  subjects       Subject[]
+  Attendance     Attendance[]
+  Test           Test[]
+  timetable      TimeTable[]
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @default(now()) @updatedAt
+}
+
+model Student {
+  id             String   @id @default(cuid())
+  email          String?  @unique
+  name           String
+  password       String
+  gender         GENDER
+  mobile         String?
+  gaurdianName   String
+  gaurdianMobile String
+  adress         String
+  dateofbirth    DateTime
+  bloodGroup     String?
+  govDocs        String[] @default([])
+
+  standardId String
+  standard   Standard @relation(fields: [standardId], references: [id])
+
+  Attendence Attendance[]
+  marks      Marks[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  Feedback Feedback[]
+}
+
+enum TESTTYPE {
+  MCQ
+  THEORY
+  BLANKS
+  MIXED
+}
+
+enum EXAMTYPE {
+  SA1
+  SA2
+  SA3
+}
+
+model Test {
+  id            String   @id @default(cuid())
+  subject       Subject  @relation(fields: [subjectId], references: [id])
+  subjectId     String
+  class         Standard @relation(fields: [classId], references: [id])
+  classId       String
+  type          TESTTYPE @default(MIXED)
+  totalMarks    Int      @default(0)
+  examType      EXAMTYPE?
+  isFinalExams  Boolean  @default(false)
+  questionPaper Json
+  conductedBy   Teacher  @relation(fields: [conductedById], references: [id])
+  conductedById String
+  conductedOn   DateTime @default(now())
+  marks         Marks[]
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+}
+
+enum USERTYPE {
+  STUDENT
+  TEACHER
+}
+
+enum STATUS {
+  PRESENT
+  ABSENT
+  HALFDAY
+}
+
+model Attendance {
+  id       String   @id @default(cuid())
+  date     DateTime @default(now())
+  userType USERTYPE
+  status   STATUS
+
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id])
+
+  teacherId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+
+  standardId String?
+  standard   Standard? @relation(fields: [standardId], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model Marks {
+  id         String   @id @default(cuid())
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  String
+  test       Test     @relation(fields: [testId], references: [id])
+  testId     String
+  score      Float
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model Reminder {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  priority       String
+  dateOfReminder DateTime
+  status         String
+  adminId      String?
+  teacherId  String?
+
+  teacher Teacher? @relation(fields: [teacherId], references: [id], name: "teacherReminders", map: "Reminder_teacher_relatedUserId_fkey")
+  admin   Admin?   @relation(fields: [adminId], references: [id], name: "adminReminders", map: "Reminder_admin_relatedUserId_fkey")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model TimeTable {
+  id         String    @id @default(cuid())
+  dayOfWeek  String
+  startTime  DateTime
+  endTime    DateTime
+  subjectId  String
+  subject    Subject   @relation(fields: [subjectId], references: [id])
+  classId    String?
+  class      Standard? @relation(fields: [classId], references: [id])
+  teacherId  String?
+  teacher    Teacher?  @relation(fields: [teacherId], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+}
+
+model Feedback {
+  id          String   @id @default(cuid())
+  content     String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [id])
+}
