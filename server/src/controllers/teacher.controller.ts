@@ -35,7 +35,7 @@ export const generateQuestionPaper = async (
         type: TESTTYPE[(body.testType ?? "MIXED") as keyof typeof TESTTYPE],
         totalMarks: body.marks,
         classId: body.classId,
-        examType: EXAMTYPE[(body.examType ?? null) as keyof typeof EXAMTYPE],
+        examType: EXAMTYPE[(body.examType ?? "SA1") as keyof typeof EXAMTYPE],
       },
     });
 
